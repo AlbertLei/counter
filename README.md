@@ -65,9 +65,10 @@ Another theorem.⏎
 
 
 ## Design Notes
-- I use `#` instead of `@` for cross-references, as pandoc already abuses `@` for both citeproc and example lists.
+- I use `#thm:main` instead of `@thm:main` for cross-reference, as pandoc already abuses `@` for both citeproc and example lists.
 - The syntax `` `c eq:zz` `` is inspired by knitr, which uses `` `r x=2` `` for evaluating inline R code.
-
+- Since I was/am a LaTeX user, many design choices were probably influenced by amsthm.
+- I do not care about clickable  hyperlinks.
 
 ## Implementation Notes
 
