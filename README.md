@@ -62,6 +62,10 @@ This theorem is plain.
 Another theorem.⏎
 ```
 
+PDF pic:
+
+<img width="404" height="219" alt="image" src="https://github.com/user-attachments/assets/2bf9d3d1-0c52-4955-a521-90d0a17f0a19" />
+
 
 
 ## Design Notes
