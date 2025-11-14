@@ -1,90 +1,111 @@
-# A Simple Counter Tool for Markdown
+# Counter --- a preprocessor for markdown
+**Motivation:** I use pandoc markdown for almost all my academic writing.
+My main complaint is that pandoc's ast doesn't natively support counters.
 
-**Motivation:** I use Pandoc markdown for almost all my academic writing.
- Pandoc is a great tool. My main complaint is that it doesn’t natively support counters.
+This is not a problem when latex/pdf is the only  format I need. 
+However, sometimes I do need docx format output as well. 
+And I feel really sorry for asking students to manually edit/check the docx files,
+just to match the numbered cross-refs in pdf.
 
-This is usually not a problem when latex/PDF is the only output format I need. However, sometimes I need HTML and docx outputs as well. And I feel really sorry for asking students to manually edit/check the docx files,  just to match the numbered references in PDF...
+The [pandoc-crossref filter](https://github.com/lierdakil/pandoc-crossref) solves about 90% of my problems,
+but it's not flexible enough for me. For example, it does not support amsthm-style crossrefs.
 
+## Syntax of `counter`
+`counter` is a pre-processor for markdown.
+Here’s the basic syntax:
 
-## Syntax
-
-`counter` is designed to be a simple pre-processor for Markdown.
- Here’s the basic syntax:
-
-- Use `` `c <pre:zz>` `` to register a counter with ID `pre:zz`.
+- Use `##pre:zz` to register a counter with ID `pre:zz`.
    This counter belongs to the kind `pre`.
+  - For the ease of parse, a legit `id` value must (i) begin and end with an alphanumeric and (ii) be composed of alphanumeric, ":", "-" and "_".
 - Counters of the same kind are numbered sequentially, starting from 1.
-  - If there’s no `:` in the counter ID, it goes into a default group.
-- Use ``#pre:id`` for cross-references.
-   It’ll be replaced by that counter’s number.
+  - If there’s no `:` in the counter ID, it goes into a default kind.
+- Use `#pre:id` for cross-references.
 
-## Example
+## Example usage
 
 **Input:**
 
-````md
-# Intro
-A numbered equation:
-$$ y = x^2 \tag{#eq:main}$$
-`c eq:main`
-Another eq:
-$$ y = x^3 \tag{#eq:3}$$
-`c eq:3`
-
-Cross-ref: Equation (#eq:3) is good.
-
-`c thm:main`
-**Theorem #thm:main.**
+```markdown
+**Theorem ##thm:main.**
 This theorem is plain.
 
-# Model
-`c thm:main2`
-**Theorem #thm:main2.**
+**Theorem ##thm:main2.**
 Another theorem.
-````
+
+**Proposition ##prp:main2.**
+This is a corollary of theorem #thm:main.
+
+See Theorem #thm:main2 as well.
+
+Below is table #tbl:1.
+
+::: c
+Table ##tbl:1: This is a plain table
+
+![](table.pdf)
+:::
+
+
+## Figure
+
+Below is figure #fig:1.
+
+
+::: c
+![](figure.pdf)
+
+Figure ##fig:1: This is a figure.
+:::
+
+
+```
+
+
 
 **Output:**
 
-```md
-# Intro
-A numbered equation:
-$$ y = x^2 \tag{1}$$
-Another eq:
-$$ y = x^3 \tag{2}$$
-
-Cross-ref: Equation (2) is good.
-
-**Theorem 1.**
+```markdown
+**Theorem [1]{#thm:main}.**
 This theorem is plain.
 
-# Model
-**Theorem 2.**
-Another theorem.⏎
+**Theorem [2]{#thm:main2}.**
+Another theorem.
+
+**Proposition [1]{#prp:main2}.**
+This is a corollary of theorem [1](#thm:main).
+
+See Theorem [2](#thm:main2) as well.
+
+Below is table [1](#tbl:1).
+
+::: c
+Table [1]{#tbl:1}: This is a plain table
+
+![](table.pdf)
+:::
+
+
+## Figure
+
+Below is figure [1](#fig:1).
+
+::: c
+![](figure.pdf)
+
+Figure [1]{#fig:1}: This is a figure.
+:::
 ```
 
-PDF pic:
 
-<img width="404" height="219" alt="image" src="https://github.com/user-attachments/assets/2bf9d3d1-0c52-4955-a521-90d0a17f0a19" />
-
-
-
-## Design Notes
+## Remarks
 - I use `#thm:main` instead of `@thm:main` for cross-reference, as pandoc already abuses `@` for both citeproc and example lists.
-- The syntax `` `c eq:zz` `` is inspired by knitr, which uses `` `r x=2` `` for evaluating inline R code.
-- Since I was/am a LaTeX user, many design choices were probably influenced by amsthm.
-- I do not care about clickable  hyperlinks.
+- This preprocessor does not work inside equations, and i still use the pandoc cross-ref filter for equation and section crossrefs.
 
-## Implementation Notes
 
+## Implementation
 The implementation should be trivial. Just walk through the text files,
-find all snippets of the pattern `` `c <id>`  ``, compute their counter values, and does a simple find-and-replace.
+find all counter ids, compute their counter values, and does multiple find-and-replace.
 
-With the help of LLM, I wrote two
-implementations in Go:
-`counter.go` and `counterN.go`.
-The only difference is that in `counterN.go`, the counter values will be appended by section/chapter numbers.
-
-- My implementation of `counterN.go` is very ad-hoc and non-robust: just count how many lines start with `# ` before each ID.
-
-Since most of the go code was written by LLM, I’m not sharing it here. 
-Any modern LLM should be able to generate the code for you given the above description.
+Any modern LLM today should be able to generate the code for you given the above description.
+I use golang to build an executable.
+Since most of the go code was written by LLM, I’m not sharing it here.
