@@ -88,7 +88,7 @@ def get_newline(line, table, sorted_keys, prefix):
     for key in sorted_keys:
         val = str(prefix) + str(table[key])
         newline = newline.replace(key, val)
-    print(newline)
+    print(newline, end="")
     return 0
 
 
