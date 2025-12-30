@@ -104,7 +104,7 @@ def print_replace_refs(lines, table, prefix):
 args = sys.argv
 
 if len(args) == 1:  # read from stdin
-    lines = sys.stdin.read()
+    lines = sys.stdin.readlines()
     prefix = ""
 elif len(args) == 2:  # read from file
     file = sys.argv[1]
