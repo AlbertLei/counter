@@ -1,14 +1,17 @@
 #!/usr/bin/env python3
+""" usage: counter <filename> <prefix>
+- counter main.txt
+- counter main.txt '2.'
+- cat main.txt | counter
+- cat main.txt | counter - '2.'
+
+Note that it will remove all trailing spaces 
+"""
+
+
 import sys
 import re
 from collections import defaultdict
-
-
-# read file and return a list
-def get_lines(file):
-    with open(file, "r") as f:
-        lines = f.readlines()
-    return lines
 
 
 # Find all __#id__ patterns and extract the 'id'
@@ -88,42 +91,42 @@ def get_newline(line, table, sorted_keys, prefix):
     for key in sorted_keys:
         val = str(prefix) + str(table[key])
         newline = newline.replace(key, val)
-    print(newline, end="")
-    return 0
+    return newline
 
 
-def print_replace_refs(lines, table, prefix):
-    keys = table.keys()
-    # Descending order (longest first)
-    sorted_keys = sorted(keys, key=len, reverse=True)
-    [get_newline(line, table, sorted_keys, prefix) for line in lines]
-    return 0
+def get_lines(args):
+    if len(args) == 1:  # read from stdin
+        lines = sys.stdin.readlines()
+    elif args[1] == "-":
+        lines = sys.stdin.readlines()
+    else:
+        filepath = sys.argv[1]
+        with open(filepath, "r") as f:
+            lines = f.readlines()
+    return lines
+
+
+def get_prefix(args):
+    if len(args) <= 2:
+        return ""  # no prefix
+    if len(args) == 3:
+        return args[2]
+    else:
+        msg = "At most two arguments:\n1. first argument for file path\n2. second argument for prefix."
+        raise ValueError(msg)
 
 
 # below are main.py
 args = sys.argv
-
-if len(args) == 1:  # read from stdin
-    lines = sys.stdin.readlines()
-    prefix = ""
-elif len(args) == 2:  # read from file
-    file = sys.argv[1]
-    lines = get_lines(file)
-    prefix = ""
-elif len(args) == 3:  # read from file and prefix
-    file = sys.argv[1]
-    lines = get_lines(file)
-    prefix = sys.argv[2]
-else:
-    msg = """At most two arguments:
-    1. first argument for file path
-    2. second argument for prefix 
-    """
-    raise ValueError(msg)
-
+lines = get_lines(args)
+prefix = get_prefix(args)
 
 ids = get_ids(lines)
 check_duplicates(ids)
 grouped_ids = group_ids(ids)
 table = get_lookup_table(ids, grouped_ids)
-print_replace_refs(lines, table, prefix)
+keys = table.keys()
+sorted_keys = sorted(keys, key=len, reverse=True)
+for line in lines:
+    line = get_newline(line, table, sorted_keys, prefix)
+    print(line.rstrip())
