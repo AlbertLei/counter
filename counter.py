@@ -8,10 +8,26 @@
 Note that it will remove all trailing spaces 
 """
 
-
 import sys
 import re
 from collections import defaultdict
+
+
+def main():
+    args = sys.argv
+    lines = get_lines(args)
+    prefix = get_prefix(args)
+
+    ids = get_ids(lines)
+    check_duplicates(ids)
+    grouped_ids = get_grouped_ids(ids)
+    table = get_lookup_table(ids, grouped_ids)
+    keys = table.keys()
+    sorted_keys = sorted(keys, key=len, reverse=True)
+    for line in lines:
+        line = get_newline(line, table, sorted_keys, prefix)
+        # remove all trailing spaces and then print to stdout
+        print(line.rstrip())
 
 
 # Find all __#id__ patterns and extract the 'id'
@@ -57,7 +73,7 @@ def get_kind(id):
 
 
 # Groupping ids by their kind.
-def group_ids(ids):
+def get_grouped_ids(ids):
     # When a key is not found, the default type is 'list'
     grouped_ids = defaultdict(list)
     for id in ids:
@@ -116,17 +132,5 @@ def get_prefix(args):
         raise ValueError(msg)
 
 
-# below are main.py
-args = sys.argv
-lines = get_lines(args)
-prefix = get_prefix(args)
-
-ids = get_ids(lines)
-check_duplicates(ids)
-grouped_ids = group_ids(ids)
-table = get_lookup_table(ids, grouped_ids)
-keys = table.keys()
-sorted_keys = sorted(keys, key=len, reverse=True)
-for line in lines:
-    line = get_newline(line, table, sorted_keys, prefix)
-    print(line.rstrip())
+if __name__ == "__main__":
+    main()
