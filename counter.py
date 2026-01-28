@@ -14,12 +14,12 @@ from collections import defaultdict
 
 
 def main():
-    args = sys.argv
-    lines = get_lines(args)
-    prefix = get_prefix(args)
+    args = sys.argv           # get cli arguments
+    lines = get_lines(args)   # get markdown lines
+    prefix = get_prefix(args) # get the prefix used in crossref
 
     ids = get_ids(lines)
-    check_duplicates(ids)
+    check_duplicates(ids)     # err if duplicate ids found
     grouped_ids = get_grouped_ids(ids)
     table = get_lookup_table(ids, grouped_ids)
     keys = table.keys()
@@ -30,18 +30,19 @@ def main():
         print(line.rstrip())
 
 
-# Find all __#id__ patterns and extract the 'id'
+# Find all ##id patterns and extract the 'id'
 def get_ids(lines):
     ids = []
+    pattern = r'^##([^ \t\n#]+)'
 
-    # A valid id must begin with "__#"
-    pattern = r"__#([^_]+)__"
-    # matches __#id__ and captures the id
     for line in lines:
-        matches = re.findall(pattern, line)
-        ids.extend(matches)
+        match = re.search(pattern, line)
+        if match:
+          id = match.group(1)  # gets the captured text after ##
+          ids.append(id)
 
     return ids
+
 
 
 # check id duplicates
@@ -74,7 +75,7 @@ def get_kind(id):
 
 # Groupping ids by their kind.
 def get_grouped_ids(ids):
-    # When a key is not found, the default type is 'list'
+    # When a key is not found, the kind is 'list'
     grouped_ids = defaultdict(list)
     for id in ids:
         kind = get_kind(id)
@@ -93,8 +94,8 @@ def get_lookup_table(ids, grouped_ids):
     out = dict()
     for id in ids:
         counter = get_counter(id, grouped_ids)
-        id_key = f"__#{id}__"
-        id_value = str(counter)
+        id_key = f"##{id}"
+        id_value = ""
         out[id_key] = id_value
         ref_key = "@" + id
         ref_value = str(counter)
